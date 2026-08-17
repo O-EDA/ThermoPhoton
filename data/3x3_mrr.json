@@ -1,0 +1,13 @@
+{
+  "heaters": [
+    {"shape": "circle", "center": [0.20, 0.20], "radius": 0.05},
+    {"shape": "circle", "center": [0.20, 0.50], "radius": 0.05},
+    {"shape": "circle", "center": [0.20, 0.80], "radius": 0.05},
+    {"shape": "circle", "center": [0.50, 0.20], "radius": 0.05},
+    {"shape": "circle", "center": [0.50, 0.50], "radius": 0.05},
+    {"shape": "circle", "center": [0.50, 0.80], "radius": 0.05},
+    {"shape": "circle", "center": [0.80, 0.20], "radius": 0.05},
+    {"shape": "circle", "center": [0.80, 0.50], "radius": 0.05},
+    {"shape": "circle", "center": [0.80, 0.80], "radius": 0.05}
+  ]
+}

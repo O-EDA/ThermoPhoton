@@ -1,0 +1,16 @@
+{
+  "heaters": [
+    {"shape": "rectangle", "center": [0.10, 0.30], "size": [0.075, 0.05]},
+    {"shape": "rectangle", "center": [0.10, 0.70], "size": [0.075, 0.05]},
+    {"shape": "rectangle", "center": [0.225, 0.30], "size": [0.075, 0.05]},
+    {"shape": "rectangle", "center": [0.225, 0.70], "size": [0.075, 0.05]},
+    {"shape": "rectangle", "center": [0.325, 0.50], "size": [0.075, 0.05]},
+    {"shape": "rectangle", "center": [0.45, 0.50], "size": [0.075, 0.05]},
+    {"shape": "rectangle", "center": [0.525, 0.30], "size": [0.075, 0.05]},
+    {"shape": "rectangle", "center": [0.525, 0.70], "size": [0.075, 0.05]},
+    {"shape": "rectangle", "center": [0.65, 0.30], "size": [0.075, 0.05]},
+    {"shape": "rectangle", "center": [0.65, 0.70], "size": [0.075, 0.05]},
+    {"shape": "rectangle", "center": [0.725, 0.50], "size": [0.075, 0.05]},
+    {"shape": "rectangle", "center": [0.85, 0.50], "size": [0.075, 0.05]}
+  ]
+}

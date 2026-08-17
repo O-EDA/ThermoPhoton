@@ -1,0 +1,10 @@
+{
+  "heaters": [
+    {"shape": "rectangle", "center": [0.10, 0.30], "size": [0.10, 0.05]},
+    {"shape": "rectangle", "center": [0.20, 0.80], "size": [0.10, 0.05]},
+    {"shape": "rectangle", "center": [0.70, 0.20], "size": [0.10, 0.05]},
+    {"shape": "rectangle", "center": [0.32, 0.20], "size": [0.10, 0.05]},
+    {"shape": "rectangle", "center": [0.60, 0.60], "size": [0.10, 0.05]},
+    {"shape": "rectangle", "center": [0.90, 0.60], "size": [0.10, 0.05]}
+  ]
+}

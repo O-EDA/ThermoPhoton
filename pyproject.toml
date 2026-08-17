@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "thermophoton"
+version = "0.1.0.dev0"
+description = "Physics-informed operator learning for 3D thermal simulation of photonic integrated circuits"
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.9,<3.13"
+authors = [
+  {name = "Weilong Guan"},
+  {name = "Li Huang"},
+  {name = "Yuxuan Lin"},
+  {name = "Yuchao Wu"},
+  {name = "Yeyu Tong"},
+  {name = "Yuzhe Ma"},
+]
+classifiers = [
+  "License :: OSI Approved :: BSD License",
+]
+dependencies = [
+  "numpy>=2.0,<2.1",
+  "matplotlib>=3.9,<3.10",
+  "torch>=2.0",
+]
+
+[project.urls]
+Paper = "https://doi.org/10.1109/ICCAD66269.2025.11240705"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.data-files]
+"share/thermophoton/cases" = ["data/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
