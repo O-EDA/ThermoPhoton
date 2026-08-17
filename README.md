@@ -48,18 +48,6 @@ checkpoint:
 python validate.py
 ```
 
-The validation samples the paper-defined heater regions on the 120 x 120 x 120
-grid around `z = 0.5 mm`, recomputes the mean absolute temperature error and
-MAPE, and checks that inference agrees with the archived predictions within
-0.005 K. Expected CPU results are:
-
-| Case | Mean absolute error (K) | MAPE (%) |
-|---|---:|---:|
-| 3 x 3 MRR | 0.444 | 0.145 |
-| 3 x 3 MZI | 0.109 | 0.036 |
-| 4 x 4 MZI | 0.151 | 0.050 |
-| Random blocks | 0.216 | 0.072 |
-
 Train with the paper schedule (20k Adam steps followed by 80k AdamW steps):
 
 ```bash
