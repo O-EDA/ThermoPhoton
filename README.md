@@ -10,8 +10,7 @@ ThermoPhoton learns steady-state 3D temperature fields from 2D heater
 distributions using physics losses only. This release contains the training
 code, the paper checkpoint, COMSOL models and full-field data for the four
 released validation cases, compact table references, and inference and
-validation entry points. Baseline implementations, profiling programs, and
-intermediate research artifacts are intentionally excluded.
+validation entry points.
 
 ## Citation
 
@@ -74,9 +73,6 @@ python main.py \
   --checkpoint checkpoints/thermophoton.pt \
   --output-dir outputs/evaluation
 ```
-
-Use `--prediction-chunk-size` if full-volume inference exceeds GPU memory. Run
-`python main.py --help` for all options.
 
 ## Repository layout
 
