@@ -115,11 +115,10 @@ class ThermalProblem3D:
 class DeepONetSolver:
     """DeepONet-based solver for parametric PDE problems"""
 
-    def __init__(self, problem, path, grid_size=20, prediction_chunk_size=0):
+    def __init__(self, problem, path, grid_size=20):
         self.problem = problem
         self.grid_size = grid_size
         self.model_path = path
-        self.prediction_chunk_size = prediction_chunk_size
         self.net = None
         self.model = None
         self._init_function_space()
@@ -206,15 +205,7 @@ class DeepONetSolver:
             Predicted temperatures at spatial_points
         """
         branch_input = heat_source_pattern.reshape(1, -1)
-        if not self.prediction_chunk_size or len(spatial_points) <= self.prediction_chunk_size:
-            return self.model.predict((branch_input, spatial_points))
-
-        chunks = []
-        for start in range(0, len(spatial_points), self.prediction_chunk_size):
-            stop = min(start + self.prediction_chunk_size, len(spatial_points))
-            chunks.append(self.model.predict((branch_input, spatial_points[start:stop])))
-        query_axis = 1 if chunks[0].ndim > 1 and chunks[0].shape[0] == len(branch_input) else 0
-        return np.concatenate(chunks, axis=query_axis)
+        return self.model.predict((branch_input, spatial_points))
 
     def save(self, path=None):
         """Save trained model weights"""
@@ -289,12 +280,6 @@ def main():
     parser.add_argument("--grid-size", type=int, default=120)
     parser.add_argument("--epochs", type=int, default=80000)
     parser.add_argument("--output-dir", type=Path, default=Path("outputs"))
-    parser.add_argument(
-        "--prediction-chunk-size",
-        type=int,
-        default=0,
-        help="Maximum query points per inference call; 0 preserves the historical full-volume call.",
-    )
     parser.add_argument("--train-new-model", action="store_true")
     args = parser.parse_args()
 
@@ -304,12 +289,7 @@ def main():
     path = str(args.checkpoint)
     # dde.optimizers.config.set_LBFGS_options(maxcor=20, ftol=1e-5, gtol=1e-06, maxiter=26000, maxfun=None, maxls=25)
     problem = ThermalProblem3D()
-    solver = DeepONetSolver(
-        problem,
-        path,
-        GRID_SIZE,
-        prediction_chunk_size=args.prediction_chunk_size,
-    )
+    solver = DeepONetSolver(problem, path, GRID_SIZE)
     solver.build_network()
 
     # Model loading/training
