@@ -68,7 +68,7 @@ python main.py \
 ThermoPhoton/
 ├── checkpoints/thermophoton.pt # released Transformer DeepONet weights
 ├── data/comsol_ground_truth.7z # COMSOL models and full 3D fields
-├── data/table1/                # compact per-heater references
+├── data/validation_cases/      # compact per-heater references
 ├── main.py                    # training and 3 x 3 MZI field inference
 ├── validate.py                # checkpoint-to-COMSOL table validation
 ├── src/thermophoton/network.py # sampler, Transformer branch, Fourier trunk

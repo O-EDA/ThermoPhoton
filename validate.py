@@ -112,14 +112,16 @@ def validate_case(
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Compare the released checkpoint with compact COMSOL Table-I references"
+        description="Compare the released checkpoint with compact COMSOL references"
     )
     parser.add_argument(
         "--checkpoint",
         type=Path,
         default=ROOT / "checkpoints" / "thermophoton.pt",
     )
-    parser.add_argument("--data-dir", type=Path, default=ROOT / "data" / "table1")
+    parser.add_argument(
+        "--data-dir", type=Path, default=ROOT / "data" / "validation_cases"
+    )
     parser.add_argument("--cases", nargs="+", choices=CASES, default=list(CASES))
     parser.add_argument(
         "--device",
@@ -163,7 +165,7 @@ def main() -> int:
             f"{maximum_delta:.6g} K (tolerance {args.prediction_tolerance_k:g} K)."
         )
         return 1
-    print("PASS: checkpoint inference reproduces the archived Table-I predictions.")
+    print("PASS: checkpoint inference reproduces the archived validation predictions.")
     return 0
 
 

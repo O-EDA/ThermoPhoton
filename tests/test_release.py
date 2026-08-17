@@ -27,11 +27,12 @@ class ReleaseTests(unittest.TestCase):
         import json
 
         cases = {"3x3_mrr", "3x3_mzi", "4x4_mzi", "random_blocks"}
-        data_files = {path.stem for path in (ROOT / "data" / "table1").glob("*.json")}
+        data_dir = ROOT / "data" / "validation_cases"
+        data_files = {path.stem for path in data_dir.glob("*.json")}
         self.assertEqual(data_files, cases)
         for case in cases:
             record = json.loads(
-                (ROOT / "data" / "table1" / f"{case}.json").read_text(encoding="utf-8")
+                (data_dir / f"{case}.json").read_text(encoding="utf-8")
             )
             self.assertEqual(record["pattern"], case)
             self.assertEqual(
