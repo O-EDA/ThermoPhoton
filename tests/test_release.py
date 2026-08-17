@@ -18,33 +18,28 @@ class ReleaseTests(unittest.TestCase):
             ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
 
     def test_repository_is_minimal(self) -> None:
-        markdown = sorted(path.relative_to(ROOT).as_posix() for path in ROOT.rglob("*.md"))
+        markdown = sorted(
+            path.relative_to(ROOT).as_posix()
+            for path in ROOT.rglob("*.md")
+            if not any(part.startswith(".") for part in path.relative_to(ROOT).parts)
+        )
         self.assertEqual(markdown, ["README.md"])
         for removed in ("cluster", "docs", "experiments", "reports", "tools", "variants"):
             self.assertFalse(any(path.is_file() for path in (ROOT / removed).rglob("*")))
 
-    def test_released_validation_artifacts(self) -> None:
-        import json
-
-        cases = {"3x3_mrr", "3x3_mzi", "4x4_mzi", "random_blocks"}
-        data_dir = ROOT / "data" / "validation_cases"
-        data_files = {path.stem for path in data_dir.glob("*.json")}
-        self.assertEqual(data_files, cases)
-        for case in cases:
-            record = json.loads(
-                (data_dir / f"{case}.json").read_text(encoding="utf-8")
-            )
-            self.assertEqual(record["pattern"], case)
-            self.assertEqual(
-                len(record["comsol_heater_temperature_K"]),
-                len(record["prediction_heater_temperature_K"]),
-            )
+    def test_released_artifacts(self) -> None:
         self.assertGreater((ROOT / "checkpoints" / "thermophoton.pt").stat().st_size, 40_000_000)
+        self.assertTrue((ROOT / "data" / "comsol_ground_truth.7z").is_file())
 
     def test_pytorch_runtime_and_network(self) -> None:
         import deepheat
         import torch
-        from thermophoton.network import FourierTrunk, GRF2D, TransformerBranch
+        from thermophoton.network import (
+            FourierTrunk,
+            GRF2D,
+            TransformerBranch,
+            create_example_heat_source,
+        )
 
         self.assertEqual(deepheat.backend.backend_name, "pytorch")
         sampler = GRF2D(N=4)
@@ -56,6 +51,9 @@ class ReleaseTests(unittest.TestCase):
         randint.assert_called_once_with(5, 20)
         branch = TransformerBranch(output_dimension=16, grid_size=32).eval()
         trunk = FourierTrunk(input_dimension=3, output_dimension=16).eval()
+        heat_source = create_example_heat_source(120)
+        self.assertEqual(heat_source.shape, (120 * 120,))
+        self.assertEqual(set(heat_source), {0.0, 1.0})
         with torch.no_grad():
             self.assertEqual(branch(torch.zeros(1, 32 * 32)).shape, (1, 16))
             self.assertEqual(trunk(torch.zeros(4, 3)).shape, (4, 16))
@@ -70,17 +68,6 @@ class ReleaseTests(unittest.TestCase):
         )
         self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
         self.assertIn("--train-new-model", completed.stdout)
-
-        completed = subprocess.run(
-            [sys.executable, str(ROOT / "validate.py"), "--help"],
-            cwd=ROOT,
-            text=True,
-            capture_output=True,
-            check=False,
-        )
-        self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
-        self.assertIn("--prediction-tolerance-k", completed.stdout)
-
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,4 +1,4 @@
-"""Train or evaluate the ThermoPhoton Transformer on a 3 x 3 MZI case."""
+"""Train ThermoPhoton or run full-field inference for an example heater map."""
 
 import argparse
 import os
@@ -15,7 +15,7 @@ import torch
 
 from thermophoton.network import (
     GRF2D,
-    create_case_pattern,
+    create_example_heat_source,
     get_branch_model,
     get_track_model,
 )
@@ -115,14 +115,15 @@ class ThermalProblem3D:
 class DeepONetSolver:
     """DeepONet-based solver for parametric PDE problems"""
 
-    def __init__(self, problem, path, grid_size=20):
+    def __init__(self, problem, path, grid_size=20, training=False):
         self.problem = problem
         self.grid_size = grid_size
         self.model_path = path
         self.net = None
         self.model = None
-        self._init_function_space()
-        self._init_data()
+        if training:
+            self._init_function_space()
+            self._init_data()
 
     def _init_function_space(self):
         """Initialize input function space"""
@@ -169,10 +170,13 @@ class DeepONetSolver:
             {"branch": "tanh", "trunk": "gelu"},
             kernel_initializer="Glorot normal"
         )
-        self.model = dde.zcs.Model(self.data, self.net)
+        if hasattr(self, "data"):
+            self.model = dde.zcs.Model(self.data, self.net)
 
     def train(self, epochs=1000):
         """Train the DeepONet model"""
+        if self.model is None:
+            raise RuntimeError("Training data was not initialized")
         self.model.compile(
             optimizer="adam",
             lr=1e-3,
@@ -205,7 +209,16 @@ class DeepONetSolver:
             Predicted temperatures at spatial_points
         """
         branch_input = heat_source_pattern.reshape(1, -1)
-        return self.model.predict((branch_input, spatial_points))
+        device = next(self.net.parameters()).device
+        self.net.eval()
+        with torch.inference_mode():
+            values = self.net(
+                (
+                    torch.as_tensor(branch_input, dtype=torch.float32, device=device),
+                    torch.as_tensor(spatial_points, dtype=torch.float32, device=device),
+                )
+            )
+        return values.detach().cpu().numpy()
 
     def save(self, path=None):
         """Save trained model weights"""
@@ -223,10 +236,6 @@ class DeepONetSolver:
 
     def load(self, path=None):
         """Load pretrained model weights"""
-        self.model.compile(
-            optimizer="adam",
-            lr=1,
-        )
         path = path or self.model_path
         try:
             state = torch.load(path, map_location="cpu", weights_only=True)
@@ -271,7 +280,7 @@ def visualize_results(solver, heat_source, output_dir):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Train or evaluate ThermoPhoton")
+    parser = argparse.ArgumentParser(description="Train ThermoPhoton or run inference")
     parser.add_argument(
         "--checkpoint",
         type=Path,
@@ -283,17 +292,17 @@ def main():
     parser.add_argument("--train-new-model", action="store_true")
     args = parser.parse_args()
 
-    TRAIN_NEW_MODEL = args.train_new_model
     GRID_SIZE = args.grid_size
     EPOCHS = args.epochs
     path = str(args.checkpoint)
     # dde.optimizers.config.set_LBFGS_options(maxcor=20, ftol=1e-5, gtol=1e-06, maxiter=26000, maxfun=None, maxls=25)
     problem = ThermalProblem3D()
-    solver = DeepONetSolver(problem, path, GRID_SIZE)
+    train_new_model = args.train_new_model or not os.path.exists(path)
+    solver = DeepONetSolver(problem, path, GRID_SIZE, training=train_new_model)
     solver.build_network()
 
     # Model loading/training
-    if os.path.exists(solver.model_path) and not TRAIN_NEW_MODEL:
+    if not train_new_model:
         solver.load()
     else:
         print("Training new model...")
@@ -301,8 +310,9 @@ def main():
         solver.save()
         dde.utils.plot_loss_history(losshistory)
 
-    # Generate sample patterns and visualize
-    visualize_results(solver, create_case_pattern("3x3_mzi", GRID_SIZE), args.output_dir)
+    # Replace this example heat-source map with a custom grid for inference.
+    heat_source = create_example_heat_source(GRID_SIZE)
+    visualize_results(solver, heat_source, args.output_dir)
 
 
 if __name__ == "__main__":

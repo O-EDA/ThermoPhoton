@@ -10,88 +10,22 @@ from scipy import interpolate
 from sklearn import gaussian_process as gp
 
 
-CASE_REGIONS = {
-    "3x3_mrr": [
-        {"shape": "circle", "x": x, "y": y, "radius": 0.05}
-        for x in (0.20, 0.50, 0.80)
-        for y in (0.20, 0.50, 0.80)
-    ],
-    "3x3_mzi": [
-        {"shape": "rectangle", "x": 0.10, "y": 0.60, "width": 0.10, "depth": 0.05},
-        {"shape": "rectangle", "x": 0.35, "y": 0.60, "width": 0.10, "depth": 0.05},
-        {"shape": "rectangle", "x": 0.375, "y": 0.20, "width": 0.10, "depth": 0.05},
-        {"shape": "rectangle", "x": 0.625, "y": 0.20, "width": 0.10, "depth": 0.05},
-        {"shape": "rectangle", "x": 0.65, "y": 0.60, "width": 0.10, "depth": 0.05},
-        {"shape": "rectangle", "x": 0.90, "y": 0.60, "width": 0.10, "depth": 0.05},
-    ],
-    "4x4_mzi": [
-        {"shape": "rectangle", "x": x, "y": y, "width": 0.075, "depth": 0.05}
-        for x, y in (
-            (0.10, 0.30), (0.10, 0.70), (0.225, 0.30), (0.225, 0.70),
-            (0.325, 0.50), (0.45, 0.50), (0.525, 0.30), (0.525, 0.70),
-            (0.65, 0.30), (0.65, 0.70), (0.725, 0.50), (0.85, 0.50),
-        )
-    ],
-    "random_blocks": [
-        {"shape": "rectangle", "x": 0.10, "y": 0.30, "width": 0.10, "depth": 0.05},
-        {"shape": "rectangle", "x": 0.20, "y": 0.80, "width": 0.10, "depth": 0.05},
-        {"shape": "rectangle", "x": 0.70, "y": 0.20, "width": 0.10, "depth": 0.05},
-        {"shape": "rectangle", "x": 0.32, "y": 0.20, "width": 0.10, "depth": 0.05},
-        {"shape": "rectangle", "x": 0.60, "y": 0.60, "width": 0.10, "depth": 0.05},
-        {"shape": "rectangle", "x": 0.90, "y": 0.60, "width": 0.10, "depth": 0.05},
-    ],
-}
-
-
-def _region_mask(x: np.ndarray, y: np.ndarray, region: dict) -> np.ndarray:
-    if region["shape"] == "circle":
-        return (x - region["x"]) ** 2 + (y - region["y"]) ** 2 <= region["radius"] ** 2
-    return (
-        (np.abs(x - region["x"]) <= region["width"] / 2)
-        & (np.abs(y - region["y"]) <= region["depth"] / 2)
-    )
-
-
-def create_case_pattern(case: str, grid_size: int = 120) -> np.ndarray:
-    """Create a flattened 2D heater map for a released validation case."""
-    if case not in CASE_REGIONS:
-        raise ValueError(f"Unknown case: {case}")
+def create_example_heat_source(grid_size: int = 120) -> np.ndarray:
+    """Create the 3 x 3 MZI heater map used by the inference example."""
     axis = np.linspace(0, 1, grid_size)
     x, y = np.meshgrid(axis, axis, indexing="ij")
     pattern = np.zeros_like(x)
-    for region in CASE_REGIONS[case]:
-        pattern[_region_mask(x, y, region)] = 1
+    for center_x, center_y in (
+        (0.10, 0.60),
+        (0.35, 0.60),
+        (0.375, 0.20),
+        (0.625, 0.20),
+        (0.65, 0.60),
+        (0.90, 0.60),
+    ):
+        mask = (np.abs(x - center_x) <= 0.05) & (np.abs(y - center_y) <= 0.025)
+        pattern[mask] = 1
     return pattern.ravel()
-
-
-def case_query_points(
-    case: str,
-    grid_size: int = 120,
-    z_center: float = 0.5,
-    z_half_thickness: float = 0.0043,
-) -> tuple[np.ndarray, np.ndarray]:
-    """Return validation points and their heater-region indices."""
-    if case not in CASE_REGIONS:
-        raise ValueError(f"Unknown case: {case}")
-    axis = np.linspace(0, 1, grid_size)
-    x, y = np.meshgrid(axis, axis, indexing="ij")
-    z_values = axis[np.abs(axis - z_center) <= z_half_thickness]
-    if z_values.size == 0:
-        raise ValueError("The requested z slab contains no grid planes")
-    selected_points = []
-    heater_ids = []
-    for index, region in enumerate(CASE_REGIONS[case]):
-        mask = _region_mask(x, y, region)
-        xy = np.column_stack((x[mask], y[mask]))
-        points = np.vstack(
-            [
-                np.column_stack((xy, np.full(len(xy), z_value)))
-                for z_value in z_values
-            ]
-        )
-        selected_points.append(points)
-        heater_ids.append(np.full(len(points), index, dtype=np.int16))
-    return np.vstack(selected_points), np.concatenate(heater_ids)
 
 
 class GRF2D:

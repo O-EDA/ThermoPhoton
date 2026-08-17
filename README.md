@@ -8,9 +8,8 @@ PyTorch implementation of the Transformer operator model from:
 
 ThermoPhoton learns steady-state 3D temperature fields from 2D heater
 distributions using physics losses only. This release contains the training
-code, the paper checkpoint, COMSOL models and full-field data for the four
-released validation cases, compact table references, and inference and
-validation entry points.
+code, the paper checkpoint, COMSOL models and full-field data, and a complete
+inference example.
 
 ## Citation
 
@@ -41,25 +40,21 @@ python -m pip install -e .
 
 ## Usage
 
-Reproduce the four released COMSOL comparison rows directly from the included
-checkpoint:
-
-```bash
-python validate.py
-```
-
-Train with the paper schedule (20k Adam steps followed by 80k AdamW steps):
-
-```bash
-python main.py --train-new-model --checkpoint outputs/thermophoton.pt
-```
-
-Evaluate an existing checkpoint and save temperature slices:
+Run full-field inference with the included checkpoint:
 
 ```bash
 python main.py \
   --checkpoint checkpoints/thermophoton.pt \
   --output-dir outputs/evaluation
+```
+
+The `create_example_heat_source` call in `main.py` can be replaced with any
+flattened 2D heater grid of the same resolution.
+
+Train with the paper schedule (20k Adam steps followed by 80k AdamW steps):
+
+```bash
+python main.py --train-new-model --checkpoint outputs/thermophoton.pt
 ```
 
 ## Repository layout
@@ -68,9 +63,7 @@ python main.py \
 ThermoPhoton/
 ├── checkpoints/thermophoton.pt # released Transformer DeepONet weights
 ├── data/comsol_ground_truth.7z # COMSOL models and full 3D fields
-├── data/validation_cases/      # compact per-heater references
 ├── main.py                    # training and 3 x 3 MZI field inference
-├── validate.py                # checkpoint-to-COMSOL table validation
 ├── src/thermophoton/network.py # sampler, Transformer branch, Fourier trunk
 ├── src/deepheat/              # minimal PyTorch/ZCS runtime
 └── tests/                     # release smoke tests
@@ -82,17 +75,12 @@ MZI, 4 x 4 MZI, and random blocks. The 120 x 120 x 120 fields contain 1,728,000
 points each; the archive also includes the 200-grid random-block export.
 
 Each text row stores `X Y Z Temperature`. COMSOL exports use coordinates on
-approximately `[0, 1000]` and temperature in kelvin; validation divides the
-coordinates by 1000. ThermoPhoton prediction files use normalized `[0, 1]`
-coordinates and temperature in degrees Celsius; validation adds 273.15 to
-compare in kelvin.
+approximately `[0, 1000]` and temperature in kelvin. ThermoPhoton prediction
+files use normalized `[0, 1]` coordinates and temperature in degrees Celsius.
 
-The compact JSON files preserve the heater-region statistics used by
-`validate.py`, allowing checkpoint validation without unpacking the multi-GB
-archive. The included `.mph` projects were saved by COMSOL 6.2.0.290 and require
-a compatible COMSOL installation with the CAD Import Module to open or rerun.
-COMSOL is not required to read the exported text fields or run the included
-model.
+The included `.mph` projects were saved by COMSOL 6.2.0.290 and require a
+compatible COMSOL installation with the CAD Import Module to open or rerun.
+COMSOL is not required to read the exported text fields or run the model.
 
 ## License
 
