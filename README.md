@@ -1,15 +1,7 @@
 # ThermoPhoton
 
-PyTorch implementation of the Transformer operator model from:
-
-> W. Guan, L. Huang, Y. Lin, Y. Wu, Y. Tong, and Y. Ma,
-> "ThermoPhoton: Fast 3D Thermal Simulation of Photonic Integrated Circuits
-> via Operator Learning," ICCAD 2025.
-
-ThermoPhoton learns steady-state 3D temperature fields from 2D heater
-distributions using physics losses only. This release contains the training
-code, the paper checkpoint, COMSOL models and full-field data, and a complete
-inference example.
+Implementation of the ThermoPhoton 3D thermal simulation framework proposed in
+ICCAD 2025.
 
 ## Citation
 
