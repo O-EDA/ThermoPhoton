@@ -43,17 +43,26 @@ python main.py \
 
 Case geometries are defined in `data/`.
 
-Training code is currently being organized.
+## Training
+
+Run training with the default configuration:
+
+```bash
+python train.py
+```
 
 ## Repository layout
 
 ```text
 ThermoPhoton/
-├── checkpoints/thermophoton.pt # released Transformer DeepONet weights
+├── checkpoints/thermophoton.pt # released ThermoPhoton weights
 ├── data/*.json                # heater configurations
 ├── data/comsol_ground_truth.7z # COMSOL models and full 3D fields
+├── deepheat/                  # training framework
+├── branch_networks.py         # training network
 ├── main.py                    # full-field inference
-├── src/thermophoton/network.py # Transformer DeepONet architecture
+├── train.py                   # training
+├── src/thermophoton/network.py # ThermoPhoton network
 └── tests/                     # release smoke tests
 ```
 
